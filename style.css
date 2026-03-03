@@ -89,6 +89,20 @@ body {
 }
 
 .error-msg { color: var(--danger); font-size: .85rem; min-height: 1.25rem; margin-top: .25rem; }
+.success-msg {
+  background: #e8f5e9; color: #2e7d32;
+  border: 1px solid #a5d6a7; border-radius: .5rem;
+  padding: .625rem .875rem; margin-bottom: 1rem; font-size: .875rem;
+}
+
+#register-form {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+}
 
 /* ===== BUTTONS ===== */
 .btn {

@@ -87,6 +87,7 @@ async function logout() {
   currentUser  = null;
   allProjects  = [];
   document.getElementById('dashboard-page').classList.remove('active');
+  document.getElementById('register-page').classList.remove('active');
   document.getElementById('login-page').classList.add('active');
   document.getElementById('email').value    = '';
   document.getElementById('password').value = '';
@@ -424,6 +425,96 @@ function togglePassword() {
   const input = document.getElementById('password');
   input.type = input.type === 'password' ? 'text' : 'password';
 }
+
+function showRegister() {
+  document.getElementById('login-page').classList.remove('active');
+  document.getElementById('register-page').classList.add('active');
+}
+
+function showLogin() {
+  document.getElementById('register-page').classList.remove('active');
+  document.getElementById('login-page').classList.add('active');
+}
+
+function toggleRegPassword() {
+  const input = document.getElementById('reg-password');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function toggleConfirmPassword() {
+  const input = document.getElementById('reg-confirm');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const prenom   = document.getElementById('reg-prenom').value.trim();
+  const nom      = document.getElementById('reg-nom').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const role     = document.getElementById('reg-role').value;
+  const password = document.getElementById('reg-password').value;
+  const confirm  = document.getElementById('reg-confirm').value;
+
+  const errEl     = document.getElementById('register-error');
+  const successEl = document.getElementById('register-success');
+  const btnText   = document.getElementById('register-btn-text');
+  const spinner   = document.getElementById('register-spinner');
+
+  errEl.textContent     = '';
+  successEl.textContent = '';
+  successEl.classList.add('hidden');
+
+  if (password !== confirm) {
+    errEl.textContent = '❌ Les mots de passe ne correspondent pas';
+    shake(document.getElementById('register-form'));
+    return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = '❌ Le mot de passe doit contenir au moins 6 caractères';
+    shake(document.getElementById('register-form'));
+    return;
+  }
+
+  btnText.textContent = 'Création en cours…';
+  spinner.classList.remove('hidden');
+  document.getElementById('register-btn').disabled = true;
+
+  try {
+    const res = await fetch('api/register.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ prenom, nom, email, role, password, confirm }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = '❌ ' + (data.erreur || 'Erreur lors de l\'inscription.');
+      shake(document.getElementById('register-form'));
+      return;
+    }
+
+    successEl.textContent = '✅ Compte créé avec succès ! Connexion en cours…';
+    successEl.classList.remove('hidden');
+
+    currentUser = data.utilisateur;
+
+    setTimeout(() => {
+      document.getElementById('register-page').classList.remove('active');
+      showDashboard();
+    }, 1500);
+
+  } catch {
+    errEl.textContent = '❌ Erreur réseau. Vérifiez votre connexion.';
+    shake(document.getElementById('register-form'));
+  } finally {
+    btnText.textContent = 'Créer mon compte';
+    spinner.classList.add('hidden');
+    document.getElementById('register-btn').disabled = false;
+  }
+});
 
 function showToast(message, type = 'info') {
   const toast = document.getElementById('toast');
