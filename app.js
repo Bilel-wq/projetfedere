@@ -87,6 +87,8 @@ async function logout() {
   currentUser  = null;
   allProjects  = [];
   document.getElementById('dashboard-page').classList.remove('active');
+  document.getElementById('registerSection').classList.add('hidden');
+  document.getElementById('login-page').classList.remove('hidden');
   document.getElementById('login-page').classList.add('active');
   document.getElementById('email').value    = '';
   document.getElementById('password').value = '';
@@ -99,6 +101,7 @@ async function logout() {
 
 async function showDashboard() {
   document.getElementById('login-page').classList.remove('active');
+  document.getElementById('registerSection').classList.add('hidden');
   document.getElementById('dashboard-page').classList.add('active');
 
   document.getElementById('user-name').textContent =
@@ -392,6 +395,104 @@ async function markNotifRead(id, li) {
     li.style.pointerEvents = 'none';
   } catch { /* ignorer */ }
 }
+
+// ====================================================================
+// INSCRIPTION
+// ====================================================================
+
+function showRegister() {
+  document.getElementById('login-page').classList.add('hidden');
+  document.getElementById('registerSection').classList.remove('hidden');
+  document.body.className = 'login-page';
+}
+
+function showLogin() {
+  document.getElementById('registerSection').classList.add('hidden');
+  document.getElementById('login-page').classList.remove('hidden');
+  document.body.className = 'login-page';
+}
+
+function toggleRegPassword() {
+  const input = document.getElementById('regPassword');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function toggleConfirmPassword() {
+  const input = document.getElementById('regConfirm');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const prenom   = document.getElementById('regPrenom').value.trim();
+  const nom      = document.getElementById('regNom').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const role     = document.getElementById('regRole').value;
+  const password = document.getElementById('regPassword').value;
+  const confirm  = document.getElementById('regConfirm').value;
+  const errEl    = document.getElementById('registerError');
+  const succEl   = document.getElementById('registerSuccess');
+  const btn      = document.getElementById('btnRegister');
+
+  errEl.textContent = '';
+  errEl.classList.add('hidden');
+  succEl.classList.add('hidden');
+
+  if (!prenom || !nom || !email || !role || !password || !confirm) {
+    errEl.textContent = 'Veuillez remplir tous les champs.';
+    errEl.classList.remove('hidden');
+    shake(document.getElementById('registerForm'));
+    return;
+  }
+
+  if (password !== confirm) {
+    errEl.textContent = 'Les mots de passe ne correspondent pas.';
+    errEl.classList.remove('hidden');
+    shake(document.getElementById('registerForm'));
+    return;
+  }
+
+  if (password.length < 6) {
+    errEl.textContent = 'Le mot de passe doit contenir au moins 6 caractères.';
+    errEl.classList.remove('hidden');
+    shake(document.getElementById('registerForm'));
+    return;
+  }
+
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('api/register.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ prenom, nom, email, role, password, confirm }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.erreur || 'Erreur lors de la création du compte.';
+      errEl.classList.remove('hidden');
+      shake(document.getElementById('registerForm'));
+      return;
+    }
+
+    succEl.textContent = data.message || 'Compte créé avec succès !';
+    succEl.classList.remove('hidden');
+
+    setTimeout(() => {
+      currentUser = data.utilisateur;
+      showDashboard();
+    }, 1500);
+  } catch {
+    errEl.textContent = 'Erreur réseau. Vérifiez votre connexion.';
+    errEl.classList.remove('hidden');
+    shake(document.getElementById('registerForm'));
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 // ====================================================================
 // UTILITAIRES
