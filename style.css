@@ -90,6 +90,29 @@ body {
 
 .error-msg { color: var(--danger); font-size: .85rem; min-height: 1.25rem; margin-top: .25rem; }
 
+.success-msg {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.input-row {
+  display: flex;
+  gap: 12px;
+}
+
+.input-row .input-group {
+  flex: 1;
+}
+
+.forgot-link { text-align: center; margin-top: 1rem; font-size: .875rem; color: var(--muted); }
+.forgot-link a { color: var(--primary); text-decoration: none; }
+.forgot-link a:hover { text-decoration: underline; }
+
 /* ===== BUTTONS ===== */
 .btn {
   display: inline-flex; align-items: center; gap: .5rem;
@@ -303,4 +326,5 @@ body {
   .toolbar { padding: 0 1rem .75rem; }
   .projects-container { padding: 0 1rem 1.5rem; }
   .form-row { grid-template-columns: 1fr; }
+  .input-row { flex-direction: column; gap: 0; }
 }

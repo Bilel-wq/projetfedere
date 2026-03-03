@@ -33,6 +33,60 @@
           <span id="login-btn-text">Se connecter</span>
           <span id="login-spinner" class="spinner hidden"></span>
         </button>
+        <p class="forgot-link">Pas encore de compte ? <a href="#" onclick="showRegister(); return false;">S'inscrire</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== PAGE D'INSCRIPTION ===== -->
+  <div id="registerSection" class="hidden">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="login-icon">🎓</div>
+        <h1>Gestion des PFE</h1>
+        <p>Créer un compte</p>
+      </div>
+      <form id="registerForm" novalidate>
+        <div class="input-row">
+          <div class="form-group input-group">
+            <label for="regPrenom">Prénom</label>
+            <input type="text" id="regPrenom" placeholder="Prénom" required>
+          </div>
+          <div class="form-group input-group">
+            <label for="regNom">Nom</label>
+            <input type="text" id="regNom" placeholder="Nom" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Adresse e-mail</label>
+          <input type="email" id="regEmail" placeholder="exemple@univ.dz" required>
+        </div>
+        <div class="form-group">
+          <label for="regRole">Rôle</label>
+          <select id="regRole" required>
+            <option value="etudiant">Étudiant</option>
+            <option value="tuteur">Tuteur</option>
+            <option value="jury">Jury</option>
+          </select>
+        </div>
+        <div class="form-group password-group">
+          <label for="regPassword">Mot de passe</label>
+          <div class="password-wrapper">
+            <input type="password" id="regPassword" placeholder="••••••••" required>
+            <button type="button" class="toggle-pwd" onclick="toggleRegPassword()" aria-label="Afficher/masquer le mot de passe">👁</button>
+          </div>
+        </div>
+        <div class="form-group password-group">
+          <label for="regConfirm">Confirmer le mot de passe</label>
+          <div class="password-wrapper">
+            <input type="password" id="regConfirm" placeholder="••••••••" required>
+            <button type="button" class="toggle-pwd" onclick="toggleConfirmPassword()" aria-label="Afficher/masquer le mot de passe">👁</button>
+          </div>
+        </div>
+        <div id="registerError" class="error-msg hidden" role="alert" aria-live="polite"></div>
+        <div id="registerSuccess" class="success-msg hidden" role="status" aria-live="polite"></div>
+        <button type="submit" id="btnRegister" class="btn btn-primary btn-block">Créer mon compte →</button>
+        <p class="forgot-link">Déjà un compte ? <a href="#" onclick="showLogin(); return false;">Se connecter</a></p>
       </form>
     </div>
   </div>
