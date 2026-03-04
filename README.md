@@ -1,7 +1,5 @@
 # 🎓 Système de Gestion des PFE
 
-Système d'information pour la gestion des Projets de Fin d'Études - Licence 3.
-
 ## 🚀 Installation
 
 ### Prérequis
