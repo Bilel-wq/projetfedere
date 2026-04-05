@@ -475,7 +475,7 @@ function openCrModal() {
   allProjects.forEach((p) => {
     const opt = document.createElement('option');
     opt.value = p.id;
-    opt.textContent = escapeHtml(p.titre);
+    opt.textContent = p.titre;
     select.appendChild(opt);
   });
 
