@@ -10,6 +10,9 @@ let currentUser = null;
 // Projets chargés depuis l'API
 let allProjects = [];
 
+// Comptes rendus chargés depuis l'API
+let allCompteRendus = [];
+
 // ── Mapping statut BDD → label affiché ──────────────────────────────
 const STATUT_LABELS = {
   propose:  'Proposé',
@@ -26,6 +29,20 @@ const STATUT_CLASSES = {
   en_cours: 'status-En-cours',
   soutenu:  'status-Soutenu',
   refuse:   'status-Refusé',
+};
+
+// ── Mapping statut compte rendu → label affiché ─────────────────────
+const CR_STATUT_LABELS = {
+  en_attente: 'En attente',
+  valide:     'Validé',
+  rejete:     'Rejeté',
+};
+
+// ── Mapping statut compte rendu → classe CSS ─────────────────────────
+const CR_STATUT_CLASSES = {
+  en_attente: 'status-cr-en-attente',
+  valide:     'status-cr-valide',
+  rejete:     'status-cr-rejete',
 };
 
 // ====================================================================
@@ -124,13 +141,19 @@ async function showDashboard() {
   document.getElementById('user-role-badge').textContent =
     capitalize(currentUser.role);
 
-  // Afficher le bouton "Nouveau projet" seulement pour les étudiants
+  // Afficher le bouton "Nouveau projet" et les onglets seulement pour les étudiants
   const newBtn = document.getElementById('new-project-btn');
+  const tabsNav = document.getElementById('tabs-nav');
   if (currentUser.role === 'etudiant') {
     newBtn.classList.remove('hidden');
+    tabsNav.classList.remove('hidden');
   } else {
     newBtn.classList.add('hidden');
+    tabsNav.classList.add('hidden');
   }
+
+  // Toujours démarrer sur l'onglet Projets
+  switchTab('projets');
 
   await loadProjects();
   loadNotifications();
@@ -349,8 +372,177 @@ document.getElementById('project-form').addEventListener('submit', async (e) => 
 });
 
 // ====================================================================
-// NOTIFICATIONS
+// ONGLETS (TABS)
 // ====================================================================
+
+function switchTab(tab) {
+  const panelProjets = document.getElementById('panel-projets');
+  const panelCrs     = document.getElementById('panel-crs');
+  const btnProjets   = document.getElementById('tab-projets');
+  const btnCrs       = document.getElementById('tab-crs');
+
+  if (tab === 'projets') {
+    panelProjets.classList.remove('hidden');
+    panelCrs.classList.add('hidden');
+    btnProjets.classList.add('active');
+    btnCrs.classList.remove('active');
+  } else {
+    panelProjets.classList.add('hidden');
+    panelCrs.classList.remove('hidden');
+    btnProjets.classList.remove('active');
+    btnCrs.classList.add('active');
+    loadCompteRendus();
+  }
+}
+
+// ====================================================================
+// COMPTES RENDUS
+// ====================================================================
+
+async function loadCompteRendus() {
+  const grid         = document.getElementById('crs-grid');
+  const emptyState   = document.getElementById('crs-empty-state');
+  const loadingState = document.getElementById('crs-loading-state');
+
+  grid.innerHTML = '';
+  emptyState.classList.add('hidden');
+  loadingState.classList.remove('hidden');
+
+  try {
+    const res = await fetch('api/comptes_rendus.php', { credentials: 'same-origin' });
+
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+
+    if (!res.ok) throw new Error('Erreur serveur');
+
+    allCompteRendus = await res.json();
+  } catch {
+    showToast('Impossible de charger les comptes rendus.', 'error');
+    allCompteRendus = [];
+  } finally {
+    loadingState.classList.add('hidden');
+  }
+
+  renderCompteRendus(allCompteRendus);
+}
+
+function renderCompteRendus(crs) {
+  const grid       = document.getElementById('crs-grid');
+  const emptyState = document.getElementById('crs-empty-state');
+
+  grid.innerHTML = '';
+
+  if (crs.length === 0) {
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  emptyState.classList.add('hidden');
+
+  crs.forEach((cr) => {
+    const label    = CR_STATUT_LABELS[cr.statut]  || capitalize(cr.statut);
+    const cssClass = CR_STATUT_CLASSES[cr.statut] || 'status-cr-en-attente';
+
+    const card = document.createElement('article');
+    card.className = 'project-card';
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="card-title">${escapeHtml(cr.titre)}</span>
+        <span class="status-badge ${cssClass}">${escapeHtml(label)}</span>
+      </div>
+      <p class="card-desc cr-project-label">📁 ${escapeHtml(cr.projet_titre)}</p>
+      ${cr.commentaire_tuteur
+        ? `<div class="cr-comment"><span class="cr-comment-label">💬 Commentaire du tuteur :</span> ${escapeHtml(cr.commentaire_tuteur)}</div>`
+        : ''}
+      <div class="card-meta">
+        <span>📅 Déposé le ${formatDate(cr.date_depot)}</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ====================================================================
+// MODAL — NOUVEAU COMPTE RENDU
+// ====================================================================
+
+function openCrModal() {
+  // Peupler la liste des projets de l'étudiant
+  const select = document.getElementById('cr-projet');
+  select.innerHTML = '<option value="">-- Sélectionnez un projet --</option>';
+  allProjects.forEach((p) => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = escapeHtml(p.titre);
+    select.appendChild(opt);
+  });
+
+  document.getElementById('cr-form').reset();
+  document.getElementById('cr-form-error').textContent = '';
+  document.getElementById('cr-modal-overlay').classList.remove('hidden');
+  document.getElementById('cr-titre').focus();
+}
+
+function closeCrModal() {
+  document.getElementById('cr-modal-overlay').classList.add('hidden');
+}
+
+function closeCrModalOutside(event) {
+  if (event.target === document.getElementById('cr-modal-overlay')) {
+    closeCrModal();
+  }
+}
+
+document.getElementById('cr-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl   = document.getElementById('cr-form-error');
+  const btnText = document.getElementById('cr-submit-text');
+  const spinner = document.getElementById('cr-submit-spinner');
+
+  errEl.textContent = '';
+
+  const idProjet = document.getElementById('cr-projet').value;
+  const titre    = document.getElementById('cr-titre').value.trim();
+  const contenu  = document.getElementById('cr-contenu').value.trim();
+
+  if (!idProjet || !titre || !contenu) {
+    errEl.textContent = 'Tous les champs sont obligatoires.';
+    shake(document.getElementById('cr-form'));
+    return;
+  }
+
+  btnText.textContent = 'Envoi…';
+  spinner.classList.remove('hidden');
+
+  try {
+    const res = await fetch('api/comptes_rendus.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ id_projet: parseInt(idProjet, 10), titre, contenu }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.erreur || 'Erreur lors de la soumission.';
+      shake(document.getElementById('cr-form'));
+      return;
+    }
+
+    closeCrModal();
+    showToast('Compte rendu soumis avec succès !', 'success');
+    await loadCompteRendus();
+  } catch {
+    errEl.textContent = 'Erreur réseau. Veuillez réessayer.';
+    shake(document.getElementById('cr-form'));
+  } finally {
+    btnText.textContent = 'Soumettre';
+    spinner.classList.add('hidden');
+  }
+});
 
 async function loadNotifications() {
   try {

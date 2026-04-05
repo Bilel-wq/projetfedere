@@ -12,3 +12,9 @@ INSERT INTO projet (titre, description, type_projet, statut, technologies, id_et
 ('Application Mobile de Suivi des PFE', 'Développement d\'une application mobile permettant aux étudiants de suivre l\'avancement de leurs projets.', 'academique', 'valide', 'Flutter,Firebase,Dart', 1, 4),
 ('Système de Gestion des Absences', 'Plateforme web pour automatiser la gestion des absences des étudiants.', 'entreprise', 'en_cours', 'Django,React,PostgreSQL', 2, 4),
 ('IA pour la Détection de Plagiat', 'Outil basé sur l\'IA pour détecter le plagiat dans les rapports PFE.', 'academique', 'propose', 'Python,NLP,TensorFlow', 3, NULL);
+
+INSERT INTO compte_rendu (id_projet, id_etudiant, titre, contenu, statut, commentaire_tuteur, date_depot) VALUES
+(1, 1, 'Compte rendu #1 — Analyse des besoins', 'Réunion avec le tuteur, rédaction du cahier des charges et identification des fonctionnalités principales de l\'application.', 'valide', 'Bon travail, analyse claire et bien structurée. Continuez ainsi.', '2026-01-15 10:30:00'),
+(1, 1, 'Compte rendu #2 — Conception de la base de données', 'Modélisation UML (diagramme de classes, MCD), choix de Firebase comme backend. Maquettes réalisées sur Figma.', 'valide', 'Conception correcte. Pensez à détailler les cardinalités dans le MCD.', '2026-02-05 14:00:00'),
+(1, 1, 'Compte rendu #3 — Développement du module authentification', 'Implémentation de l\'authentification via Firebase Auth. Gestion des rôles étudiant et tuteur.', 'rejete', 'La gestion des erreurs est insuffisante. Veuillez revoir la validation des formulaires et les messages d\'erreur côté utilisateur.', '2026-02-28 09:15:00'),
+(1, 1, 'Compte rendu #4 — Correction module authentification', 'Correction des problèmes signalés : validation des formulaires améliorée, messages d\'erreur complets, tests unitaires ajoutés.', 'en_attente', NULL, '2026-03-10 11:00:00');

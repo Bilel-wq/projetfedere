@@ -116,42 +116,69 @@
     <!-- Statistiques -->
     <div class="stats-bar" id="stats-bar"></div>
 
-    <!-- Barre d'outils -->
-    <div class="toolbar">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Rechercher un projet…" oninput="filterProjects()">
-      </div>
-      <div class="filter-group">
-        <select id="filter-statut" onchange="filterProjects()">
-          <option value="">Tous les statuts</option>
-          <option value="propose">Proposé</option>
-          <option value="valide">Validé</option>
-          <option value="en_cours">En cours</option>
-          <option value="soutenu">Soutenu</option>
-          <option value="refuse">Refusé</option>
-        </select>
-        <select id="filter-type" onchange="filterProjects()">
-          <option value="">Tous les types</option>
-          <option value="academique">Académique</option>
-          <option value="entreprise">Entreprise</option>
-        </select>
-      </div>
-      <button id="new-project-btn" class="btn btn-primary hidden" onclick="openModal()">+ Nouveau projet</button>
+    <!-- Onglets de navigation (étudiants uniquement) -->
+    <div id="tabs-nav" class="tabs-nav hidden">
+      <button id="tab-projets" class="tab-btn active" onclick="switchTab('projets')">📁 Mes Projets</button>
+      <button id="tab-crs" class="tab-btn" onclick="switchTab('crs')">📝 Mes Comptes Rendus</button>
     </div>
 
-    <!-- Liste des projets -->
-    <main class="projects-container">
-      <div id="projects-grid" class="projects-grid"></div>
-      <div id="empty-state" class="empty-state hidden">
-        <div class="empty-icon">📂</div>
-        <p>Aucun projet trouvé.</p>
+    <!-- Panneau : Projets -->
+    <div id="panel-projets">
+      <!-- Barre d'outils -->
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Rechercher un projet…" oninput="filterProjects()">
+        </div>
+        <div class="filter-group">
+          <select id="filter-statut" onchange="filterProjects()">
+            <option value="">Tous les statuts</option>
+            <option value="propose">Proposé</option>
+            <option value="valide">Validé</option>
+            <option value="en_cours">En cours</option>
+            <option value="soutenu">Soutenu</option>
+            <option value="refuse">Refusé</option>
+          </select>
+          <select id="filter-type" onchange="filterProjects()">
+            <option value="">Tous les types</option>
+            <option value="academique">Académique</option>
+            <option value="entreprise">Entreprise</option>
+          </select>
+        </div>
+        <button id="new-project-btn" class="btn btn-primary hidden" onclick="openModal()">+ Nouveau projet</button>
       </div>
-      <div id="loading-state" class="loading-state">
-        <div class="loader"></div>
-        <p>Chargement des projets…</p>
+
+      <!-- Liste des projets -->
+      <main class="projects-container">
+        <div id="projects-grid" class="projects-grid"></div>
+        <div id="empty-state" class="empty-state hidden">
+          <div class="empty-icon">📂</div>
+          <p>Aucun projet trouvé.</p>
+        </div>
+        <div id="loading-state" class="loading-state">
+          <div class="loader"></div>
+          <p>Chargement des projets…</p>
+        </div>
+      </main>
+    </div>
+
+    <!-- Panneau : Comptes Rendus (étudiants uniquement) -->
+    <div id="panel-crs" class="hidden">
+      <div class="toolbar">
+        <button id="new-cr-btn" class="btn btn-primary" onclick="openCrModal()">+ Nouveau compte rendu</button>
       </div>
-    </main>
+      <main class="projects-container">
+        <div id="crs-grid" class="projects-grid"></div>
+        <div id="crs-empty-state" class="empty-state hidden">
+          <div class="empty-icon">📝</div>
+          <p>Aucun compte rendu déposé.</p>
+        </div>
+        <div id="crs-loading-state" class="loading-state hidden">
+          <div class="loader"></div>
+          <p>Chargement des comptes rendus…</p>
+        </div>
+      </main>
+    </div>
   </div>
 
   <!-- ===== MODAL NOUVEAU PROJET ===== -->
@@ -195,6 +222,42 @@
           <button type="submit" class="btn btn-primary">
             <span id="submit-btn-text">Soumettre</span>
             <span id="submit-spinner" class="spinner hidden"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL NOUVEAU COMPTE RENDU ===== -->
+  <div id="cr-modal-overlay" class="modal-overlay hidden" onclick="closeCrModalOutside(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cr-modal-title">
+      <div class="modal-header">
+        <h2 id="cr-modal-title">Nouveau compte rendu</h2>
+        <button class="modal-close" onclick="closeCrModal()" aria-label="Fermer">✕</button>
+      </div>
+      <form id="cr-form" novalidate>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="cr-projet">Projet <span class="required">*</span></label>
+            <select id="cr-projet" required>
+              <option value="">-- Sélectionnez un projet --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cr-titre">Titre <span class="required">*</span></label>
+            <input type="text" id="cr-titre" placeholder="Titre du compte rendu" required>
+          </div>
+          <div class="form-group">
+            <label for="cr-contenu">Contenu <span class="required">*</span></label>
+            <textarea id="cr-contenu" rows="5" placeholder="Décrivez l'avancement, les tâches réalisées…" required></textarea>
+          </div>
+          <div id="cr-form-error" class="error-msg" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeCrModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <span id="cr-submit-text">Soumettre</span>
+            <span id="cr-submit-spinner" class="spinner hidden"></span>
           </button>
         </div>
       </form>
